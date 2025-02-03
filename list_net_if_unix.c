@@ -1,7 +1,7 @@
 /* GET NETWORK INTERFACES (UNIX-BASED) */
 
 
-
+#define _GNU_SOURCE
 #include <sys/socket.h>
 #include <netdb.h>
 #include <ifaddrs.h>
@@ -10,16 +10,16 @@
 #include <string.h>
 
 
-typedef struct ifAddr{
+typedef struct interface{
     char* name;
     char* ipv4;
     char* ipv6;    
-    struct ifAddr* next;
-} ifAddr; 
+    struct interface* next;
+} interface; 
 
 
 // add first element to list
-void addEmpty(ifAddr* head, char* name){
+void addEmpty(interface* head, char* name){
     head->name = strdup(name);
     head->ipv4 = NULL;
     head->ipv6 = NULL;
@@ -29,13 +29,13 @@ void addEmpty(ifAddr* head, char* name){
 }
 
 // push to the list 
-void add(ifAddr* head, char* name){
-    ifAddr * current = head;
+void add(interface* head, char* name){
+    interface * current = head;
     while (current->next != NULL){
         current = current->next;
     }
 
-    current->next = (ifAddr *) malloc(sizeof(ifAddr));
+    current->next = (interface *) malloc(sizeof(interface));
     current->next->name = strdup(name);
     current->next->ipv4 = NULL;
     current->next->ipv6 = NULL;
@@ -46,9 +46,9 @@ void add(ifAddr* head, char* name){
 
 
 // fill in ip values 
-void addIp(ifAddr * head, char* name, char* ip, int family){
+void addIp(interface * head, char* name, char* ip, int family){
     
-    ifAddr* current = head;
+    interface* current = head;
         while(current){
             if (!strcmp(current->name,name)){
                 if (family == AF_INET)
@@ -63,8 +63,8 @@ void addIp(ifAddr * head, char* name, char* ip, int family){
 
 // loop through list to check if interface already exists (returns 0 if exists, 1 otherwise )
 
-int searchList(ifAddr* head, char* name){
-    ifAddr* current = head;
+int searchList(interface* head, char* name){
+    interface* current = head;
     while(current){
         if (!strcmp(current->name, name))
             return 0; 
@@ -78,9 +78,9 @@ int searchList(ifAddr* head, char* name){
 
 // free list memory 
 
-void freeList(ifAddr * head)
+void freeList(interface * head)
 {
-    ifAddr * temp;
+    interface * temp;
     while(head){
         temp = head;
         head = head->next;
@@ -96,8 +96,8 @@ void freeList(ifAddr * head)
 int main() {
 
     
-    ifAddr * list = NULL;
-    list = (ifAddr *) malloc(sizeof(ifAddr));
+    interface * list = NULL;
+    list = (interface *) malloc(sizeof(interface));
     list->name = NULL;
     list->ipv4 = NULL;
     list->ipv6 = NULL;
@@ -139,7 +139,7 @@ int main() {
     }
 
     // print interfaces 
-    ifAddr* temp = list; 
+    interface* temp = list; 
     while(temp){
         printf("%s\n", temp->name);
         if (temp->ipv4)
