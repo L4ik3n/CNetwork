@@ -12,6 +12,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdlib.h>
  
 
 
@@ -57,17 +58,15 @@ int main() {
         return 1;
     }
 
-    // log client address 
+    // get client address 
     char address_buffer[100];
     getnameinfo((struct sockaddr*)&client_address, client_len, address_buffer, sizeof(address_buffer), 0, 0, NI_NUMERICHOST);
-    printf("%s\n", address_buffer);
+    
 
 
     // read request 
-    char request[200];
+    char request[1024];
     int bytes_received = recv(socket_client, request, 1024, 0);
-    printf("Received %d bytes. \n", bytes_received);
-    printf("%.*s", bytes_received, request);
 
     // send response
     const char *response = 
@@ -83,7 +82,18 @@ int main() {
     char *time_msg = ctime(&seconds);
     bytes_sent = send(socket_client, time_msg, strlen(time_msg), 0);
     printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(time_msg));
-
+    
+    
+    // log to a file 
+    FILE *fp;
+    if (fp != NULL){
+        fp = fopen("time_server.log", "a");
+        fprintf(fp, "%s\nConnection from: %s\n", time_msg, address_buffer);
+        fprintf(fp, "Received: %d bytes.\n", bytes_received);
+        fprintf(fp, "%.*s", bytes_received, request);
+        fclose(fp);
+    }
+    
     close(socket_client);
 
     return 0; 
