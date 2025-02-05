@@ -21,7 +21,7 @@ int main() {
     // configure local address for web server to bind to 
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;
+    hints.ai_family = AF_INET6;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
@@ -36,6 +36,13 @@ int main() {
         return 1;
     }
 
+    
+    int option = 0; 
+    if (setsockopt (socket_listen, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&option, sizeof(option))){
+        fprintf(stderr, "call to setsockopt() failes. (%d)\n", errno);
+        return 1;
+    }
+    
     // bind socket to local address (bind returns 0 on success, non-zero on failure)
     if (bind(socket_listen, bind_address->ai_addr, bind_address->ai_addrlen)){
         fprintf(stderr, "call to bind() failed. (%d)\n", errno);
@@ -77,12 +84,15 @@ int main() {
     int bytes_sent = send(socket_client, response, strlen(response), 0);
     printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(response));
 
+
+    
     time_t seconds;
     time(&seconds);
     char *time_msg = ctime(&seconds);
     bytes_sent = send(socket_client, time_msg, strlen(time_msg), 0);
     printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(time_msg));
     
+
     
     // log to a file 
     FILE *fp;
