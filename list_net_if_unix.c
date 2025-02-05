@@ -9,6 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <net/if.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <errno.h>
+
 
 typedef struct interface{
     char* name;
@@ -118,7 +125,21 @@ int main() {
         int family = address->ifa_addr->sa_family;
         // check if interface type is either v4 or v6 
         if (family == AF_INET || family == AF_INET6) {
-            
+            if (family == AF_INET){
+                struct sockaddr_in* mask = (struct sockaddr_in*)address->ifa_netmask;
+                char mask_str[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, &mask->sin_addr, mask_str, INET_ADDRSTRLEN);
+                printf("TESTv4: %s\t", mask_str);
+            }
+            else {
+                struct sockaddr_in6* mask = (struct sockaddr_in6*)address->ifa_netmask;
+                char mask_str[INET6_ADDRSTRLEN];
+                if (inet_ntop(AF_INET6, mask->sin6_addr.s6_addr, mask_str, INET6_ADDRSTRLEN));
+                    
+
+                printf("TESTv6: %s\t", mask_str);
+
+            }
             // check if list is empty
             if (list -> name){
                 // check if interfaces already exists
