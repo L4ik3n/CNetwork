@@ -8,20 +8,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <net/if.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
 #include <arpa/inet.h>
 #include <errno.h>
 
 
 typedef struct interface{
-    char* name;
-    char* ipv4;
-    char* ipv6;    
-    struct interface* next;
+    char *name;
+    char *ipv4;
+    char *ipv6;    
+    struct interface *next;
+    char *mask;
+    char *mask6;
+
 } interface; 
 
 
@@ -31,6 +29,8 @@ void addEmpty(interface* head, char* name){
     head->ipv4 = NULL;
     head->ipv6 = NULL;
     head->next = NULL;
+    head->mask = NULL;
+    head->mask6 = NULL;
 
 
 }
@@ -47,21 +47,27 @@ void add(interface* head, char* name){
     current->next->ipv4 = NULL;
     current->next->ipv6 = NULL;
     current->next->next = NULL;
+    current->next->mask = NULL;
+    current->next->mask6 = NULL;
     
 
 }
 
 
 // fill in ip values 
-void addIp(interface * head, char* name, char* ip, int family){
+void addIp(interface * head, char* name, char* ip, int family, char* mask){
     
     interface* current = head;
         while(current){
             if (!strcmp(current->name,name)){
-                if (family == AF_INET)
+                if (family == AF_INET){
                     current->ipv4 = strdup(ip);
-                else if (family == AF_INET6)
+                    current->mask = strdup(mask);
+                }
+                else if (family == AF_INET6){
                     current->ipv6 = strdup(ip);
+                    current->mask6 = strdup(mask);
+                }
             }   
             current = current->next;
         }
@@ -94,6 +100,8 @@ void freeList(interface * head)
         free(temp->name);
         free(temp->ipv4);
         free(temp->ipv6);
+        free(temp->mask);
+        free(temp->mask6);
         free(temp);
 
     } 
@@ -109,6 +117,8 @@ int main() {
     list->ipv4 = NULL;
     list->ipv6 = NULL;
     list->next = NULL;
+    list->mask = NULL;
+    list->mask6 = NULL;
     struct ifaddrs *addresses;
 
     // return linked list of interfaces (returns 0 on success, -1 on failure) 
@@ -122,22 +132,19 @@ int main() {
 
     // loop through linked list and print interface name, type(only v4 and v6) and address
     while(address) {
+        
         int family = address->ifa_addr->sa_family;
+        char mask_str[INET6_ADDRSTRLEN];
         // check if interface type is either v4 or v6 
         if (family == AF_INET || family == AF_INET6) {
             if (family == AF_INET){
                 struct sockaddr_in* mask = (struct sockaddr_in*)address->ifa_netmask;
-                char mask_str[INET_ADDRSTRLEN];
                 inet_ntop(AF_INET, &mask->sin_addr, mask_str, INET_ADDRSTRLEN);
-                printf("TESTv4: %s\t", mask_str);
+                
             }
             else {
                 struct sockaddr_in6* mask = (struct sockaddr_in6*)address->ifa_netmask;
-                char mask_str[INET6_ADDRSTRLEN];
-                if (inet_ntop(AF_INET6, mask->sin6_addr.s6_addr, mask_str, INET6_ADDRSTRLEN));
-                    
-
-                printf("TESTv6: %s\t", mask_str);
+                inet_ntop(AF_INET6, mask->sin6_addr.s6_addr, mask_str, INET6_ADDRSTRLEN);
 
             }
             // check if list is empty
@@ -154,7 +161,7 @@ int main() {
             const int family_size = family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6);
             // get address
             getnameinfo(address->ifa_addr, family_size, addrBuffer, sizeof(addrBuffer), 0, 0, NI_NUMERICHOST);
-            addIp(list, address->ifa_name, addrBuffer, family);
+            addIp(list, address->ifa_name, addrBuffer, family, mask_str);
         }
         address = address->ifa_next;
     }
@@ -163,11 +170,14 @@ int main() {
     interface* temp = list; 
     while(temp){
         printf("%s\n", temp->name);
-        if (temp->ipv4)
+        if (temp->ipv4){
             printf("\tIPv4: %s\n", temp->ipv4);
-        if (temp->ipv6)
+            printf("\tMask: %s\n", temp->mask);
+        }
+        if (temp->ipv6){
             printf("\tIPv6: %s\n", temp->ipv6);
-
+            printf("\tMask: %s\n", temp->mask6);
+        }
         temp = temp->next;
     }
 
