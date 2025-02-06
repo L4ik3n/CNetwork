@@ -65,8 +65,13 @@ void addIp(interface * head, char* name, char* ip, int family, char* mask){
                     current->mask = strdup(mask);
                 }
                 else if (family == AF_INET6){
-                    current->ipv6 = strdup(ip);
+                    // remove scope id 
+                    char *scope = strdup(ip); 
+                    char *per = strchr(scope, '%');
+                    if(per) *per = '\0';
+                    current->ipv6 = strdup(scope);
                     current->mask6 = strdup(mask);
+                    free(scope);
                 }
             }   
             current = current->next;
@@ -137,6 +142,7 @@ int main() {
         char mask_str[INET6_ADDRSTRLEN];
         // check if interface type is either v4 or v6 
         if (family == AF_INET || family == AF_INET6) {
+            // get mask for ip address 
             if (family == AF_INET){
                 struct sockaddr_in* mask = (struct sockaddr_in*)address->ifa_netmask;
                 inet_ntop(AF_INET, &mask->sin_addr, mask_str, INET_ADDRSTRLEN);
