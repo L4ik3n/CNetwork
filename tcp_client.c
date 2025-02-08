@@ -27,24 +27,22 @@ int main(int argc, char *argv[]){
     hints.ai_socktype = SOCK_STREAM;
     struct addrinfo *server_addr;
     if (getaddrinfo(argv[1], argv[2], &hints, &server_addr)){
-        fprintf(stderr, "call to getaddrinfo() failed. (%d)", errno);
+        fprintf(stderr, "call to getaddrinfo() failed. (%d)\n", errno);
         return 1;
     }
 
-    char addr_buffer[100];
-    char srvc_buffer[100];
-    getnameinfo(server_addr->ai_addr, server_addr->ai_addrlen, addr_buffer, sizeof(addr_buffer), srvc_buffer, sizeof(srvc_buffer), NI_NUMERICHOST);
+
     int socket_server;
     socket_server = socket(server_addr->ai_family, server_addr->ai_socktype, server_addr->ai_protocol);
     if (!(socket_server >= 0)){
-        fprintf(stderr, "call to socket() failed. (%d)", errno);
+        fprintf(stderr, "call to socket() failed. (%d)\n", errno);
         return 1;
     }
     
 
 
     if (connect(socket_server, server_addr->ai_addr, server_addr->ai_addrlen)){
-        fprintf(stderr, "call to connect() failed. (%d)", errno);
+        fprintf(stderr, "call to connect() failed. (%d)\n", errno);
         return 1;
     }
 
@@ -58,11 +56,8 @@ int main(int argc, char *argv[]){
         FD_SET(socket_server, &reads);
         FD_SET(0, &reads);
 
-        struct timeval timeout;
-        timeout.tv_sec = 100;
-        timeout.tv_usec = 100000;
 
-        if (select(socket_server+1, &reads, 0, 0, &timeout) < 0 ){
+        if (select(socket_server+1, &reads, 0, 0, 0) < 0 ){
             fprintf(stderr, "call to select() failed. (%d)", errno);
             return 1;
         }
