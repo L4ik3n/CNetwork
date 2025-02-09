@@ -11,20 +11,34 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 
 
 int main(int argc, char *argv[]){
-    if (argc < 3) {
-        fprintf(stderr, "Usage: filename hostname service");
+    if (argc < 4) {
+        fprintf(stderr, "Usage: filename hostname service protocol(TCP/UDP)");
         return 1; 
 
     }
 
-    
+    char protocol [4];
+    protocol[3] = '\0'; 
+    int i;
+    for( i = 0; i < 3; ++i){
+        protocol[i] = toupper(argv[3][i]); 
+    }
+
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
+    if (!(strcmp(protocol, "TCP")))
     hints.ai_socktype = SOCK_STREAM;
+    else if (!(strcmp(protocol, "UDP")))
+    hints.ai_socktype = SOCK_DGRAM;
+    else {
+        fprintf(stderr, "Usage: filename hostname service protocol(TCP/UDP)");
+        return 1;
+    }
     struct addrinfo *server_addr;
     if (getaddrinfo(argv[1], argv[2], &hints, &server_addr)){
         fprintf(stderr, "call to getaddrinfo() failed. (%d)\n", errno);
