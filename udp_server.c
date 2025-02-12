@@ -12,9 +12,10 @@
 
 int main(){
 
-    // Configure socket hints for dual stack 
+    // Configure socket hints
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
+    hints.ai_family=AF_INET6;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE;
     struct addrinfo *bind_addr;
@@ -31,6 +32,12 @@ int main(){
 
     }
     
+    // Clear IPV6ONLy flag 
+    int option = 0; 
+    if (setsockopt(socket_listen, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&option, sizeof(option))){
+        fprintf(stderr, "call to setsockopt() failed. (%d)\n", errno);
+        return 1;
+    }
 
     // Bind socket to address 
     if (bind(socket_listen, bind_addr->ai_addr, bind_addr->ai_addrlen)){

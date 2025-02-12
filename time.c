@@ -36,10 +36,10 @@ int main() {
         return 1;
     }
 
-    
+    // clear IPV6_V6ONLY flag
     int option = 0; 
     if (setsockopt (socket_listen, IPPROTO_IPV6, IPV6_V6ONLY, (void*)&option, sizeof(option))){
-        fprintf(stderr, "call to setsockopt() failes. (%d)\n", errno);
+        fprintf(stderr, "call to setsockopt() failed. (%d)\n", errno);
         return 1;
     }
     
@@ -91,13 +91,19 @@ int main() {
     char *time_msg = ctime(&seconds);
     bytes_sent = send(socket_client, time_msg, strlen(time_msg), 0);
     printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(time_msg));
+
+    char *ip_mssg = "\nYour IP address is: ";
+    bytes_sent = send(socket_client, ip_mssg, strlen(ip_mssg), 0);
+    printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(time_msg));
+    bytes_sent = send(socket_client, address_buffer, strlen(address_buffer), 0);
+    printf("Sent %d of %d bytes.\n", bytes_sent, (int)strlen(time_msg));
     
 
     
     // log to a file 
     FILE *fp;
+    fp = fopen("time_server.log", "a");
     if (fp != NULL){
-        fp = fopen("time_server.log", "a");
         fprintf(fp, "%s\nConnection from: %s\n", time_msg, address_buffer);
         fprintf(fp, "Received: %d bytes.\n", bytes_received);
         fprintf(fp, "%.*s", bytes_received, request);
