@@ -94,6 +94,7 @@ DNS ANSWER
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+
 #include <string.h>
 
 
@@ -119,7 +120,7 @@ int main(int argc, char *argv[]){
 
     unsigned char type; 
     if (strcmp(argv[2], "a") == 0){
-        type == 1;
+        type = 1;
     } else if (strcmp(argv[2],"mx") == 0){
         type = 15;
     } else if (strcmp(argv[2], "txt") == 0){
@@ -147,7 +148,7 @@ int main(int argc, char *argv[]){
 
 
     int socket_send; 
-    if (socket_send = socket(peer->ai_family, peer->ai_socktype, peer->ai_protocol) < 0){
+    if ((socket_send = socket(peer->ai_family, peer->ai_socktype, peer->ai_protocol)) < 0){
         fprintf(stderr, "call to socket() failed. (%d)\n", errno);
         return 1;
     }
