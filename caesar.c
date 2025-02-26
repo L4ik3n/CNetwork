@@ -13,7 +13,7 @@ int main(int argc, char* argv[]){
     printf("Enter cipher text:\n");
     char *ciphertext = read_line();
     int transp = 0;
-    printf("Enter number of transpositions:\n");
+    printf("Enter number of shifts:\n");
     scanf("%d", &transp);
     decipher(transp, ciphertext);
     printf("Plain text:\n%s\n", ciphertext);
@@ -56,16 +56,16 @@ char *read_line(void){
 void decipher(int transp, char *ciphertext){
     char *charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     int charset_len = strlen(charset); 
-    int transpose = 0; 
-    if (transp > 0) transpose = transp % 26;
+    int shift = 0; 
+    if (transp > 0) shift = transp % 26;
     int i = 0;
     while(ciphertext[i] != '\0'){
         int position = 0;
         int j = 0;
         
         while(ciphertext[i] != charset[j]) ++j;
-        if(transpose + j > 25) position = (transpose + j) % 26;
-        else position = (transpose + j);
+        if(shift + j > 25) position = (shift + j) % 26;
+        else position = (shift + j);
         if(position == 26) position = 0;
         ciphertext[i] = charset[position];
         ++i;
