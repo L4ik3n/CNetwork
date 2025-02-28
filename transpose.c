@@ -114,16 +114,15 @@ char *decrypt(char *ciphertext, int key){
     int position;
     int height = strlen(ciphertext) / key;
     int remainder = strlen(ciphertext) % key;
-    while(row <= height){ 
+    if (remainder) height++;
+    while(row < height){ 
         position = row;
-        column = 0;
-        while(column < key){
-            if(position >= strlen(ciphertext)) break;
+        while(1){
             plaintext[counter] = ciphertext[position];
-            if (remainder && column < remainder) position += height + 1;
-            else position += height;            
-            counter++;
-            column++;
+            counter ++;
+            position += key;
+            if (position >= strlen(ciphertext)) break;
+         
         }        
         row++;
     }
