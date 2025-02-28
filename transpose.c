@@ -6,18 +6,24 @@
 
 char *read_line(void);
 char *encrypt(char *plaintext, int key);
-
+char *decrypt(char *ciphertext, int key);
 
 
 int main(int argc, char *argv[]){
 
+    printf("Plaintext: ");
     char *buffer = read_line();
     int key; 
+    printf("Key length: ");
     scanf("%d", &key);
     char *cipher = encrypt(buffer, key);
-    printf("%s", cipher);
+    printf("Ciphertext is: %s\n", cipher);
+    //char *plain = decrypt(cipher, key);
+    //printf("Plaintext is: %s\n", plain);
+    
     free(buffer);
     free(cipher);
+    //free(plain);
     return 0;
 }
 
@@ -69,24 +75,61 @@ char *encrypt(char *plaintext, int key){
     }
 
     int column = 0;
-    int remainder = strlen(plaintext) % key;
-    int length = strlen(plaintext) / key;
-    if (!remainder) --length;
     int counter = 0; 
-    
     while(column < key){
         int position = column;
-        int row = 0;
-        while( row <= length){
-            if ( row == length && column >= remainder) break;
+        while(1){
             cipher[counter] = plaintext[position];
-            position += key;
-            row++;
             counter++;
+            position += key;
+            if (position >= strlen(plaintext)) break;
         }
         column++;         
     }
     cipher[counter] = 0;
     return cipher;
+
+}
+
+
+
+char *decrypt(char *ciphertext, int key){
+    if (key <= 0 || key >= strlen(ciphertext)){
+        fprintf(stderr, "Ciphertext must be longer than key.");
+        free(ciphertext);
+        exit(1);
+    }
+
+    char *plaintext;
+    plaintext = malloc((strlen(ciphertext) + 1) * sizeof(char));
+    if (!plaintext){
+        fprintf(stderr, "Failed to allocate memory.");
+        free(ciphertext);
+        exit(1);
+    } 
+
+    
+    int column, row = 0; 
+    int counter = 0;
+    int position;
+    int height = strlen(ciphertext) / key;
+    int remainder = strlen(ciphertext) % key;
+    while(row <= height){ 
+        position = row;
+        column = 0;
+        while(column < key){
+            if(position >= strlen(ciphertext)) break;
+            plaintext[counter] = ciphertext[position];
+            if (remainder && column < remainder) position += height + 1;
+            else position += height;            
+            counter++;
+            column++;
+        }        
+        row++;
+    }
+
+    plaintext[counter] = 0;
+    return plaintext; 
+
 
 }
