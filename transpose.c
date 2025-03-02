@@ -18,12 +18,12 @@ int main(int argc, char *argv[]){
     scanf("%d", &key);
     char *cipher = encrypt(buffer, key);
     printf("Ciphertext is: %s\n", cipher);
-    //char *plain = decrypt(cipher, key);
-    //printf("Plaintext is: %s\n", plain);
+    char *plain = decrypt(cipher, key);
+    printf("Plaintext is: %s\n", plain);
     
     free(buffer);
     free(cipher);
-    //free(plain);
+    free(plain);
     return 0;
 }
 
@@ -117,15 +117,18 @@ char *decrypt(char *ciphertext, int key){
     if (remainder) height++;
     while(row < height){ 
         position = row;
-        while(1){
-            plaintext[counter] = ciphertext[position];
-            counter ++;
-            position += key;
-            if (position >= strlen(ciphertext)) break;
-         
-        }        
-        row++;
-    }
+        column = 0;
+        while(column < key){
+            plaintext[counter] = ciphertext[position]; 
+            if (!remainder || column < remainder) position += height;
+            else position += (height - 1);
+            column++;
+            counter++;
+            if (row == (height  - 1) && remainder && column >= remainder) break;
+        }
+        row++;        
+    }  
+    
 
     plaintext[counter] = 0;
     return plaintext; 
