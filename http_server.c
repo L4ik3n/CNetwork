@@ -9,7 +9,17 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
+
+typedef struct client_info{
+    socklen_t address_length;
+    struct sockaddr_storage address;
+    int socket;
+    char request[MAX_REQUEST_SIZE + 1];
+    int received;
+    struct client_info *next;
+} client_info;
 
 
 int create_socket(const char *host, const char *port);
@@ -22,21 +32,14 @@ void send_400(client_info *client);
 void send_404(client_info *client);
 void serve_resource(client_info *client, const char *path);
 
-typedef struct {
-    socklen_t address_length;
-    struct sockaddr_storage address;
-    int socket;
-    char request[MAX_REQUEST_SIZE + 1];
-    int received;
-    struct client_info *next;
-} client_info;
 
-static struct client_info *clients = 0; 
+
+static client_info *clients = 0; 
 
 
 
 int main(int argc, char* argv[]){
-    int server = create_socket("127.0.0.1", "8080");
+    int server = create_socket("0", "6969");
 
     while(1){
 
@@ -119,10 +122,10 @@ int create_socket(const char *host, const char *port){
         exit(1);
     }
 
-    freeadrrinfo(bind_address);
+    freeaddrinfo(bind_address);
 
     if (listen(socket_server, 10) < 0){
-        fprintf(stderr, "Call to listen() failed. (%d)\n");
+        fprintf(stderr, "Call to listen() failed. (%d)\n", errno);
         exit(1);
     }
 
@@ -185,7 +188,7 @@ const char *get_client_address(client_info *ci){
 
 
 const char *get_content_type(const char *path){
-    const char *last_dot = strrch(path, '.');
+    const char *last_dot = strrchr(path, '.');
     if (last_dot){
         if (!(strcmp(last_dot, ".css"))) return "text/css";
         if (!(strcmp(last_dot, ".csv"))) return "text/csv";
@@ -283,7 +286,7 @@ void serve_resource(client_info *client, const char *path){
     sprintf(buffer, "Connection: close\r\n");
     send(client->socket, buffer, strlen(buffer), 0);
 
-    sprintf(buffer, "Content-Length: %u\r\n", cl);
+    sprintf(buffer, "Content-Length: %lu\r\n", cl);
     send(client->socket, buffer, strlen(buffer), 0);
 
     sprintf(buffer, "Content-Type: %s\r\n", ct);
