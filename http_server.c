@@ -39,7 +39,7 @@ static client_info *clients = 0;
 
 
 int main(int argc, char* argv[]){
-    int server = create_socket("0", "6969");
+    int server = create_socket(0, "8080");
 
     while(1){
 
@@ -120,6 +120,12 @@ int create_socket(const char *host, const char *port){
     if (socket_server < 0) {
         fprintf(stderr, "Call to socket() failed. (%d)\n", errno);
         exit(1);
+    }
+
+    if (bind(socket_server, bind_address->ai_addr, bind_address->ai_addrlen)){
+        fprintf(stderr, "Call to bind() failed. (%d)\n",errno);
+        exit(1);
+
     }
 
     freeaddrinfo(bind_address);
